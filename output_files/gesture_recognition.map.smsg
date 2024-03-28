@@ -1,0 +1,1 @@
+Warning (10268): Verilog HDL information at test_spi.v(30): always construct contains both blocking and non-blocking assignments

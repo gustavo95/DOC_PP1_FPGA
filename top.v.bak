@@ -1,0 +1,36 @@
+
+module top (
+	//Control
+	input clk,
+//	input rst,
+//	
+//	//SPI
+//	input ss,
+//	input mosi,
+//	output miso,
+//	input sck,
+	
+	//7segments
+	output [6:0] hex0,
+	output [6:0] hex1
+);
+
+	reg [3:0] aux;
+	reg [3:0] aux2;
+
+	initial begin
+		aux = 4'hf;
+		aux2 = 4'h0;
+	end
+	
+	segment7 segmentseven_1 (
+		.bcd(aux),
+		.seg(hex0)
+	);
+	
+	segment7 segmentseven_2 (
+		.bcd(aux),
+		.seg(hex1)
+	);
+
+endmodule

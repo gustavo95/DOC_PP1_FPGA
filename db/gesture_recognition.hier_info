@@ -1,0 +1,130 @@
+|top
+clk => clk.IN1
+rst => rst.IN1
+ss => ss.IN1
+mosi => mosi.IN1
+miso <= spi_slave:spi.miso
+sck => sck.IN1
+hex0[0] <= segment7:segment_seven_0.seg
+hex0[1] <= segment7:segment_seven_0.seg
+hex0[2] <= segment7:segment_seven_0.seg
+hex0[3] <= segment7:segment_seven_0.seg
+hex0[4] <= segment7:segment_seven_0.seg
+hex0[5] <= segment7:segment_seven_0.seg
+hex0[6] <= segment7:segment_seven_0.seg
+hex1[0] <= segment7:segment_seven_1.seg
+hex1[1] <= segment7:segment_seven_1.seg
+hex1[2] <= segment7:segment_seven_1.seg
+hex1[3] <= segment7:segment_seven_1.seg
+hex1[4] <= segment7:segment_seven_1.seg
+hex1[5] <= segment7:segment_seven_1.seg
+hex1[6] <= segment7:segment_seven_1.seg
+done <= spi_slave:spi.done
+button <= rst.DB_MAX_OUTPUT_PORT_TYPE
+mosi_led <= mosi.DB_MAX_OUTPUT_PORT_TYPE
+miso_led <= sck.DB_MAX_OUTPUT_PORT_TYPE
+ss_led <= ss.DB_MAX_OUTPUT_PORT_TYPE
+led5 <= <GND>
+led6 <= <GND>
+led7 <= <GND>
+led8 <= <GND>
+
+
+|top|segment7:segment_seven_0
+bcd[0] => Decoder0.IN3
+bcd[1] => Decoder0.IN2
+bcd[2] => Decoder0.IN1
+bcd[3] => Decoder0.IN0
+seg[0] <= WideOr6.DB_MAX_OUTPUT_PORT_TYPE
+seg[1] <= WideOr5.DB_MAX_OUTPUT_PORT_TYPE
+seg[2] <= WideOr4.DB_MAX_OUTPUT_PORT_TYPE
+seg[3] <= WideOr3.DB_MAX_OUTPUT_PORT_TYPE
+seg[4] <= WideOr2.DB_MAX_OUTPUT_PORT_TYPE
+seg[5] <= WideOr1.DB_MAX_OUTPUT_PORT_TYPE
+seg[6] <= WideOr0.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|top|segment7:segment_seven_1
+bcd[0] => Decoder0.IN3
+bcd[1] => Decoder0.IN2
+bcd[2] => Decoder0.IN1
+bcd[3] => Decoder0.IN0
+seg[0] <= WideOr6.DB_MAX_OUTPUT_PORT_TYPE
+seg[1] <= WideOr5.DB_MAX_OUTPUT_PORT_TYPE
+seg[2] <= WideOr4.DB_MAX_OUTPUT_PORT_TYPE
+seg[3] <= WideOr3.DB_MAX_OUTPUT_PORT_TYPE
+seg[4] <= WideOr2.DB_MAX_OUTPUT_PORT_TYPE
+seg[5] <= WideOr1.DB_MAX_OUTPUT_PORT_TYPE
+seg[6] <= WideOr0.DB_MAX_OUTPUT_PORT_TYPE
+
+
+|top|spi_slave:spi
+clk => sck_old_q.CLK
+clk => data_q[0].CLK
+clk => data_q[1].CLK
+clk => data_q[2].CLK
+clk => data_q[3].CLK
+clk => data_q[4].CLK
+clk => data_q[5].CLK
+clk => data_q[6].CLK
+clk => data_q[7].CLK
+clk => ss_q.CLK
+clk => mosi_q.CLK
+clk => sck_q.CLK
+clk => miso_q.CLK
+clk => dout_q[0].CLK
+clk => dout_q[1].CLK
+clk => dout_q[2].CLK
+clk => dout_q[3].CLK
+clk => dout_q[4].CLK
+clk => dout_q[5].CLK
+clk => dout_q[6].CLK
+clk => dout_q[7].CLK
+clk => bit_ct_q[0].CLK
+clk => bit_ct_q[1].CLK
+clk => bit_ct_q[2].CLK
+clk => done_q.CLK
+rst => done_q.OUTPUTSELECT
+rst => bit_ct_q.OUTPUTSELECT
+rst => bit_ct_q.OUTPUTSELECT
+rst => bit_ct_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => dout_q.OUTPUTSELECT
+rst => miso_q.OUTPUTSELECT
+ss => ss_q.DATAIN
+mosi => mosi_q.DATAIN
+miso <= miso_q.DB_MAX_OUTPUT_PORT_TYPE
+sck => sck_q.DATAIN
+done <= done_q.DB_MAX_OUTPUT_PORT_TYPE
+din[0] => data_d.DATAB
+din[0] => data_d[0].DATAB
+din[1] => data_d.DATAB
+din[1] => data_d[1].DATAB
+din[2] => data_d.DATAB
+din[2] => data_d[2].DATAB
+din[3] => data_d.DATAB
+din[3] => data_d[3].DATAB
+din[4] => data_d.DATAB
+din[4] => data_d[4].DATAB
+din[5] => data_d.DATAB
+din[5] => data_d[5].DATAB
+din[6] => data_d.DATAB
+din[6] => data_d[6].DATAB
+din[7] => data_d.DATAB
+din[7] => data_d[7].DATAB
+dout[0] <= dout_q[0].DB_MAX_OUTPUT_PORT_TYPE
+dout[1] <= dout_q[1].DB_MAX_OUTPUT_PORT_TYPE
+dout[2] <= dout_q[2].DB_MAX_OUTPUT_PORT_TYPE
+dout[3] <= dout_q[3].DB_MAX_OUTPUT_PORT_TYPE
+dout[4] <= dout_q[4].DB_MAX_OUTPUT_PORT_TYPE
+dout[5] <= dout_q[5].DB_MAX_OUTPUT_PORT_TYPE
+dout[6] <= dout_q[6].DB_MAX_OUTPUT_PORT_TYPE
+dout[7] <= dout_q[7].DB_MAX_OUTPUT_PORT_TYPE
+
+
