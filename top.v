@@ -16,10 +16,10 @@ module top (
 	
 	//led
 	output done,
-	output reg button,
-	output reg mosi_led,
-	output reg miso_led,
-	output reg ss_led,
+	output reg led1,
+	output reg led2,
+	output reg led3,
+	output reg led4,
 	output reg led5,
 	output reg led6,
 	output reg led7,
@@ -36,9 +36,9 @@ module top (
 	wire outsck;
 	
 	always @ (clk) begin
-		mosi_led <= mosi;
-		miso_led <= miso;
-		ss_led <= sck;
+		led2 <= mosi;
+		led3 <= miso;
+		led4 <= sck;
 		led5 <= data_to_send[0];
 		led6 <= data_to_send[1];
 		led7 <= data_to_send[2];
@@ -46,7 +46,7 @@ module top (
 	end
 	
 	always @ (rst or done) begin
-		button = rst;
+		led1 = rst;
 		if (rst == 1'b0) begin
 			hex1_data <= 4'b0000;
 			hex2_data <= 4'b0000;
