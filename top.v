@@ -32,30 +32,31 @@ module top (
 	reg [3:0] aux2;
 	reg [7:0] data_to_send;
 	
-	wire [2:0] count;
 	wire [7:0] data_received;
 	wire outsck;
 	
 	always @ (clk) begin
-		mosi_led = mosi;
-		miso_led = sck;
-		ss_led = ss;
-		led5 = count[0];
-		led6 = count[1];
-		led7 = count[2];
+		mosi_led <= mosi;
+		miso_led <= miso;
+		ss_led <= sck;
+		led5 <= data_to_send[0];
+		led6 <= data_to_send[1];
+		led7 <= data_to_send[2];
+		led8 <= data_to_send[3];
 	end
 	
 	always @ (rst or done) begin
 		button = rst;
 		if (rst == 1'b0) begin
-			hex1_data = 4'b0000;
-			hex2_data = 4'b0000;
-			data_to_send = 8'b00010000;
+			hex1_data <= 4'b0000;
+			hex2_data <= 4'b0000;
+			data_to_send <= 8'b0;
 		end
 		else begin
 			if (done) begin
-				hex1_data = data_received[3:0];
-				hex2_data = data_received[7:4];
+				hex1_data <= data_received[3:0];
+				hex2_data <= data_received[7:4];
+				data_to_send <= ~data_received;
 			end
 		end
 	end

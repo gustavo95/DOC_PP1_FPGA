@@ -1,0 +1,33 @@
+# Arquivos e pastas do Quartus que devem ser ignorados
+db/
+incremental_db/
+output_files/
+simulation/
+*.rpt
+*.chg
+*.qpf
+*.qsf
+*.bak
+*.qws
+*.done
+*.summary
+*.smsg
+*.jdi
+
+# Arquivos de log e temporários
+*.log
+*.tmp
+*.bak
+*~
+
+# Diretórios que podem conter arquivos temporários
+c5_pin_model_dump/
+hps_isw_handoff/
+
+# Arquivos específicos de simulação do ModelSim
+*.wlf
+transcript
+vsim.wlf
+
+# Arquivos de backup geral
+*.bak
