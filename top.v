@@ -15,47 +15,38 @@ module top (
 	output [6:0] hex1,
 	
 	//led
-	output done,
-	output reg led1,
-	output reg led2,
-	output reg led3,
-	output reg led4,
-	output reg led5,
-	output reg led6,
-	output reg led7,
-	output reg led8
+	output led0,
+	output led1,
+	output led2,
+	output led3,
+	output led4,
+	output led5,
+	output led6,
+	output led7,
+	output led8
 );
 
-	reg [3:0] hex1_data;
-	reg [3:0] hex2_data;
-	reg [3:0] aux1;
-	reg [3:0] aux2;
 	reg [7:0] data_to_send;
 	
 	wire [7:0] data_received;
-	wire outsck;
+	wire spi_cycle_done;
 	
-	always @ (clk) begin
-		led2 <= mosi;
-		led3 <= miso;
-		led4 <= sck;
-		led5 <= data_to_send[0];
-		led6 <= data_to_send[1];
-		led7 <= data_to_send[2];
-		led8 <= data_to_send[3];
-	end
+	assign led0 = spi_cycle_done;
+	assign led1 = rst;
+	assign led2 = mosi;
+	assign led3 = miso;
+	assign led4 = sck;
+	assign led5 = data_to_send[0];
+	assign led6 = data_to_send[1];
+	assign led7 = data_to_send[2];
+	assign led8 = data_to_send[3];
 	
-	always @ (rst or done) begin
-		led1 = rst;
+	always @ (rst or spi_cycle_done) begin
 		if (rst == 1'b0) begin
-			hex1_data <= 4'b0000;
-			hex2_data <= 4'b0000;
 			data_to_send <= 8'b0;
 		end
 		else begin
-			if (done) begin
-				hex1_data <= data_received[3:0];
-				hex2_data <= data_received[7:4];
+			if (spi_cycle_done) begin
 				data_to_send <= ~data_received;
 			end
 		end
@@ -78,7 +69,7 @@ module top (
 		.mosi(mosi),
 		.miso(miso),
 		.sck(sck),
-		.done(done),
+		.done(spi_cycle_done),
 		.din(data_to_send),
 		.dout(data_received)
 	);

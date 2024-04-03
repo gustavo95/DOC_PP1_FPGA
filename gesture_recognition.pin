@@ -898,7 +898,7 @@ GND                          : V12       : gnd    :                   :         
 VCC                          : V13       : power  :                   : 1.1V    :           :                
 GND                          : V14       : gnd    :                   :         :           :                
 VCC                          : V15       : power  :                   : 1.1V    :           :                
-done                         : V16       : output : 2.5 V             :         : 4A        : Y              
+led0                         : V16       : output : 2.5 V             :         : 4A        : Y              
 led2                         : V17       : output : 2.5 V             :         : 4A        : Y              
 led3                         : V18       : output : 2.5 V             :         : 4A        : Y              
 GND                          : V19       : gnd    :                   :         :           :                
