@@ -26,32 +26,22 @@ module top (
 	output led8
 );
 
-	reg [7:0] data_to_send;
-	
+	wire [7:0] data_to_send;
 	wire [7:0] data_received;
 	wire spi_cycle_done;
+	wire [2:0] state;
 	
 	assign led0 = spi_cycle_done;
 	assign led1 = rst;
 	assign led2 = mosi;
 	assign led3 = miso;
 	assign led4 = sck;
-	assign led5 = data_to_send[0];
-	assign led6 = data_to_send[1];
-	assign led7 = data_to_send[2];
-	assign led8 = data_to_send[3];
+	assign led5 = state[0];
+	assign led6 = state[1];
+	assign led7 = state[2];
+	assign led8 = 1'b0;
 	
-	always @ (rst or spi_cycle_done) begin
-		if (rst == 1'b0) begin
-			data_to_send <= 8'b0;
-		end
-		else begin
-			if (spi_cycle_done) begin
-				data_to_send <= ~data_received;
-			end
-		end
-	end
-	
+	// 7-segments modules
 	segment7 segment_seven_0 (
 		.bcd(data_received[3:0]),
 		.seg(hex0)
@@ -60,6 +50,17 @@ module top (
 	segment7 segment_seven_1 (
 		.bcd(data_received[7:4]),
 		.seg(hex1)
+	);
+	
+	
+	// Communication modules
+	data_transfer_controller dtc (
+		.clk(clk),
+		.rst(rst),
+		.spi_cycle_done(spi_cycle_done),
+		.spi_byte_in(data_received),
+		.spi_byte_out(data_to_send),
+		.state(state)
 	);
 	
 	spi_slave spi(
