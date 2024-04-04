@@ -30,16 +30,20 @@ module top (
 	wire [7:0] data_received;
 	wire spi_cycle_done;
 	wire [2:0] state;
+	wire [14:0] bram_addr;
+	wire bram_we;
+	wire [7:0] bram_data_in;
+	wire [7:0] bram_data_out;
 	
-	assign led0 = spi_cycle_done;
-	assign led1 = rst;
-	assign led2 = mosi;
-	assign led3 = miso;
-	assign led4 = sck;
-	assign led5 = state[0];
-	assign led6 = state[1];
-	assign led7 = state[2];
-	assign led8 = 1'b0;
+	assign led0 = bram_addr[0];
+	assign led1 = bram_addr[1];
+	assign led2 = bram_addr[2];
+	assign led3 = bram_addr[3];
+	assign led4 = bram_addr[4];
+	assign led5 = bram_addr[5];
+	assign led6 = bram_addr[6];
+	assign led7 = bram_addr[7];
+	assign led8 = bram_addr[8];
 	
 	// 7-segments modules
 	segment7 segment_seven_0 (
@@ -52,6 +56,14 @@ module top (
 		.seg(hex1)
 	);
 	
+	// Storage modules
+	bram_image_storage bram_image(
+		.clk(clk),
+		.addr(bram_addr),
+		.we(bram_we),
+		.data_in(bram_data_in),
+		.data_out(bram_data_out)
+);
 	
 	// Communication modules
 	data_transfer_controller dtc (
@@ -60,6 +72,10 @@ module top (
 		.spi_cycle_done(spi_cycle_done),
 		.spi_byte_in(data_received),
 		.spi_byte_out(data_to_send),
+		.bram_addr(bram_addr),
+		.bram_we(bram_we),
+		.bram_data_in(bram_data_in),
+		.bram_data_out(bram_data_out),
 		.state(state)
 	);
 	
