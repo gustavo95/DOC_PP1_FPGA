@@ -73,7 +73,6 @@ module data_transfer_controller (
 							bram_data_in <= spi_byte_in;
 							bram_addr <= bram_addr + 1;
 							bram_we <= 1'b1;
-							spi_byte_out <= bram_addr[8:0];
 							
 							img_width_count <= img_width_count - 1'b1;
 							if ((img_width_count - 1'b1) == 16'b0) begin
@@ -85,7 +84,7 @@ module data_transfer_controller (
 							end
 						end
 				3'd3 : begin // Send bram data
-							spi_byte_out <= bram_addr[8:0];
+							spi_byte_out <= bram_data_out;
 							bram_addr <= bram_addr + 1;
 							if ((bram_addr + 1) >= 15'd19200) begin
 								state <= 3'd0;
