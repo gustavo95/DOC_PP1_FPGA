@@ -6,7 +6,8 @@ module data_transfer_controller (
 	input      [7:0] spi_byte_in,
 	output reg [7:0] spi_byte_out,
 	
-	output reg [14:0] bram_addr,
+	output reg [16:0] bram_addr,
+	output reg [1:0] bram_channel,
 	output reg bram_we,
 	output reg [7:0] bram_data_in,
 	input [7:0] bram_data_out,
@@ -30,7 +31,8 @@ module data_transfer_controller (
 			img_height_count <= 16'b0;
 			img_width_count <= 16'b0;
 			spi_byte_out <= 8'b0;
-			bram_addr <= 15'b0 - 1;
+			bram_addr <= 17'b0 - 17'b1;
+			bram_channel <= 2'b00;
 			bram_we <= 1'b0;
 		end
 		else if (spi_cycle_done) begin
@@ -41,37 +43,48 @@ module data_transfer_controller (
 							img_height_count <= 16'b0;
 							img_width_count <= 16'b0;
 							spi_byte_out <= 8'b0;
-							bram_addr <= 15'b0 - 1;
+							bram_addr <= 17'b0 - 17'b1;
+							bram_channel <= 2'b00;
 							bram_we <= 1'b0;
-							if (spi_byte_in == 8'b00000001) begin
+							if (spi_byte_in[3:2] == 2'b01) begin
 								state <= 3'd1;
 								size_byte_count <= 3'd4;
+								bram_channel <= spi_byte_in[1:0];
 							end
-							else if (spi_byte_in == 8'b00000010) begin
+							else if (spi_byte_in[3:2] == 2'b10) begin
 								state <= 3'd3;
-								bram_addr <= 15'b0;
+								bram_addr <= 17'b0;
+								bram_channel <= spi_byte_in[1:0];
 							end
 							else begin
 								size_byte_count <= 3'd0;
 							end
 						end
 				3'd1 : begin // Recives the size bytes
-							if ((size_byte_count) >= 3'd3) begin
-								img_height <= (img_height << 8) | spi_byte_in;
+							if (size_byte_count == 3'd4) begin
+								img_height[15:8] <= spi_byte_in;
 							end
-							else begin
-								img_width <= (img_width << 8) | spi_byte_in;
+							else if (size_byte_count == 3'd3) begin
+								img_height[7:0] <= spi_byte_in;
 							end
+							else if (size_byte_count == 3'd2) begin
+								img_width[15:8] <= spi_byte_in;
+							end
+							else if (size_byte_count == 3'd1) begin
+								img_width[7:0] <= spi_byte_in;
+							end
+							
 							size_byte_count <= size_byte_count - 1'd1;
 							if ((size_byte_count - 1'd1) == 3'd0) begin
 								state <= 3'd2;
 								img_height_count <= img_height;
-								img_width_count <= (img_width << 8) | spi_byte_in;
+								img_width_count[15:8] <= img_width[15:8];
+								img_width_count[7:0] <= spi_byte_in;
 							end
 						end
 				3'd2 : begin // Reiceves the image data bytes
 							bram_data_in <= spi_byte_in;
-							bram_addr <= bram_addr + 1;
+							bram_addr <= bram_addr + 17'b1;
 							bram_we <= 1'b1;
 							
 							img_width_count <= img_width_count - 1'b1;
@@ -85,8 +98,8 @@ module data_transfer_controller (
 						end
 				3'd3 : begin // Send bram data
 							spi_byte_out <= bram_data_out;
-							bram_addr <= bram_addr + 1;
-							if ((bram_addr + 1) >= 15'd19200) begin
+							bram_addr <= bram_addr + 17'b1;
+							if ((bram_addr + 1) >= 17'd76800) begin
 								state <= 3'd0;
 							end
 						end
@@ -98,7 +111,8 @@ module data_transfer_controller (
 							img_height_count <= 16'b0;
 							img_width_count <= 16'b0;
 							spi_byte_out <= 8'b0;
-							bram_addr <= 15'b0 - 1;
+							bram_addr <= 17'b0 - 17'b1;
+							bram_channel <= 2'b00;
 							bram_we <= 1'b0;
 						end
 			endcase

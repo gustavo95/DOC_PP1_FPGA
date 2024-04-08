@@ -26,24 +26,27 @@ module top (
 	output led8
 );
 
-	wire [7:0] data_to_send;
-	wire [7:0] data_received;
 	wire spi_cycle_done;
 	wire [2:0] state;
-	wire [14:0] bram_addr;
+	wire [7:0] data_to_send;
+	wire [7:0] data_received;
+	
 	wire bram_we;
+	wire [1:0] bram_channel;
+	wire [1:0] aux;
 	wire [7:0] bram_data_in;
 	wire [7:0] bram_data_out;
+	wire [16:0] bram_addr;
 	
-	assign led0 = bram_addr[0];
-	assign led1 = bram_addr[1];
-	assign led2 = bram_addr[2];
-	assign led3 = bram_addr[3];
-	assign led4 = bram_addr[4];
-	assign led5 = bram_addr[5];
-	assign led6 = bram_addr[6];
-	assign led7 = bram_addr[7];
-	assign led8 = bram_addr[8];
+	assign led0 = mosi;
+	assign led1 = miso;
+	assign led2 = ss;
+	assign led3 = sck;
+	assign led4 = rst;
+	assign led5 = data_received[5];
+	assign led6 = data_received[6];
+	assign led7 = bram_channel[0];
+	assign led8 = bram_channel[1];
 	
 	// 7-segments modules
 	segment7 segment_seven_0 (
@@ -57,9 +60,10 @@ module top (
 	);
 	
 	// Storage modules
-	bram_image_storage bram_image(
+	bram_image_storage bram_image_red(
 		.clk(clk),
 		.addr(bram_addr),
+		.channel(bram_channel),
 		.we(bram_we),
 		.data_in(bram_data_in),
 		.data_out(bram_data_out)
@@ -73,6 +77,7 @@ module top (
 		.spi_byte_in(data_received),
 		.spi_byte_out(data_to_send),
 		.bram_addr(bram_addr),
+		.bram_channel(bram_channel),
 		.bram_we(bram_we),
 		.bram_data_in(bram_data_in),
 		.bram_data_out(bram_data_out),
