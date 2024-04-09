@@ -50,24 +50,33 @@ module top (
 	
 	// 7-segments modules
 	segment7 segment_seven_0 (
-		.bcd(data_received[3:0]),
+		.bcd(bram_data_out[3:0]),
 		.seg(hex0)
 	);
 	
 	segment7 segment_seven_1 (
-		.bcd(data_received[7:4]),
+		.bcd(bram_data_out[7:4]),
 		.seg(hex1)
 	);
 	
 	// Storage modules
-	bram_image_storage bram_image_red(
+	// bram_image_storage bram_image_red(
+	// 	.clk(clk),
+	// 	.addr(bram_addr),
+	// 	.channel(bram_channel),
+	// 	.we(bram_we),
+	// 	.data_in(bram_data_in),
+	// 	.data_out(bram_data_out)
+	// );
+
+	bram_controller bram_ctrl (
 		.clk(clk),
 		.addr(bram_addr),
 		.channel(bram_channel),
 		.we(bram_we),
 		.data_in(bram_data_in),
 		.data_out(bram_data_out)
-);
+	);
 	
 	// Communication modules
 	data_transfer_controller dtc (

@@ -3,7 +3,7 @@ module data_transfer_controller (
 	input rst,
 	
 	input spi_cycle_done,
-	input      [7:0] spi_byte_in,
+	input [7:0] spi_byte_in,
 	output reg [7:0] spi_byte_out,
 	
 	output reg [16:0] bram_addr,
@@ -31,21 +31,13 @@ module data_transfer_controller (
 			img_height_count <= 16'b0;
 			img_width_count <= 16'b0;
 			spi_byte_out <= 8'b0;
-			bram_addr <= 17'b0 - 17'b1;
+			bram_addr <= {17{1'b1}};
 			bram_channel <= 2'b00;
 			bram_we <= 1'b0;
 		end
 		else if (spi_cycle_done) begin
 			case (state)
 				3'd0 : begin // Reives the command byte
-							img_height <= 16'b0;
-							img_width <= 16'b0;
-							img_height_count <= 16'b0;
-							img_width_count <= 16'b0;
-							spi_byte_out <= 8'b0;
-							bram_addr <= 17'b0 - 17'b1;
-							bram_channel <= 2'b00;
-							bram_we <= 1'b0;
 							if (spi_byte_in[3:2] == 2'b01) begin
 								state <= 3'd1;
 								size_byte_count <= 3'd4;
@@ -57,7 +49,16 @@ module data_transfer_controller (
 								bram_channel <= spi_byte_in[1:0];
 							end
 							else begin
+								state <= 3'd0;
 								size_byte_count <= 3'd0;
+								img_height <= 16'b0;
+								img_width <= 16'b0;
+								img_height_count <= 16'b0;
+								img_width_count <= 16'b0;
+								spi_byte_out <= 8'b0;
+								bram_addr <= {17{1'b1}};
+								bram_channel <= 2'b00;
+								bram_we <= 1'b0;
 							end
 						end
 				3'd1 : begin // Recives the size bytes
@@ -111,7 +112,7 @@ module data_transfer_controller (
 							img_height_count <= 16'b0;
 							img_width_count <= 16'b0;
 							spi_byte_out <= 8'b0;
-							bram_addr <= 17'b0 - 17'b1;
+							bram_addr <= {17{1'b1}};
 							bram_channel <= 2'b00;
 							bram_we <= 1'b0;
 						end
