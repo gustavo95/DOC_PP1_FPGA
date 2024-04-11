@@ -2,12 +2,12 @@ module spi_slave(
     input clk,				//execution clock
     input rst,				//module reset
     input ss,				//chip select
-    input mosi,			//master out slave in
+    input mosi,				//master out slave in
     output miso,			//master in slave out
     input sck,				//communication clock
     output done,			//signal indicating transfer completed
-    input [7:0] din,    //
-    output [7:0] dout
+    input [7:0] din,		//input data
+    output [7:0] dout		//output data
 );
  
 	reg mosi_d, mosi_q;

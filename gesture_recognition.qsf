@@ -81,6 +81,7 @@ set_location_assignment PIN_AD17 -to sck
 set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (Verilog)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
 set_location_assignment PIN_V16 -to led0
+set_global_assignment -name VERILOG_FILE img_processing.v
 set_global_assignment -name SDC_FILE gesture_recognition.sdc
 set_global_assignment -name VERILOG_FILE bram_controller.v
 set_global_assignment -name VERILOG_FILE top.v

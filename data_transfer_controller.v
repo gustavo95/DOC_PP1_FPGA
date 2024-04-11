@@ -11,19 +11,20 @@ module data_transfer_controller (
 	output reg bram_we,
 	output reg [7:0] bram_data_in,
 	input [7:0] bram_data_out,
-	
-	output reg [2:0] state
+
+	output reg pdi_active,
+	input pdi_done
 );
 
-//	reg [2:0]  state;
+	reg [2:0]  state;
 	reg [2:0]  size_byte_count;
 	reg [15:0] img_height; // or data_size
 	reg [15:0] img_width;
 	reg [15:0] img_height_count;
 	reg [15:0] img_width_count;
 
-	always @ (posedge spi_cycle_done or negedge rst) begin
-		if (!rst) begin
+	task init_values;
+		begin
 			state <= 3'd0;
 			size_byte_count <= 3'd0;
 			img_height <= 16'b0;
@@ -34,10 +35,18 @@ module data_transfer_controller (
 			bram_addr <= {17{1'b1}};
 			bram_channel <= 2'b00;
 			bram_we <= 1'b0;
+			pdi_active <= 1'b0;
+			bram_data_in <= 8'b0;
+		end
+	endtask
+
+	always @ (posedge clk or negedge rst) begin
+		if (!rst) begin
+			init_values;
 		end
 		else if (spi_cycle_done) begin
 			case (state)
-				3'd0 : begin // Reives the command byte
+				3'd0 : begin // Recives the command byte
 							if (spi_byte_in[3:2] == 2'b01) begin
 								state <= 3'd1;
 								size_byte_count <= 3'd4;
@@ -48,20 +57,15 @@ module data_transfer_controller (
 								bram_addr <= 17'b0;
 								bram_channel <= spi_byte_in[1:0];
 							end
+							else if (spi_byte_in[3:2] == 2'b11) begin
+								state <= 3'd4;
+								pdi_active <= 1'b1;
+							end
 							else begin
-								state <= 3'd0;
-								size_byte_count <= 3'd0;
-								img_height <= 16'b0;
-								img_width <= 16'b0;
-								img_height_count <= 16'b0;
-								img_width_count <= 16'b0;
-								spi_byte_out <= 8'b0;
-								bram_addr <= {17{1'b1}};
-								bram_channel <= 2'b00;
-								bram_we <= 1'b0;
+								init_values;
 							end
 						end
-				3'd1 : begin // Recives the size bytes
+				3'd1 : begin // Recives the data size bytes
 							if (size_byte_count == 3'd4) begin
 								img_height[15:8] <= spi_byte_in;
 							end
@@ -100,23 +104,21 @@ module data_transfer_controller (
 				3'd3 : begin // Send bram data
 							spi_byte_out <= bram_data_out;
 							bram_addr <= bram_addr + 17'b1;
-							if ((bram_addr + 1) >= 17'd76800) begin
+							if (bram_addr >= 17'd76799) begin
 								state <= 3'd0;
 							end
 						end
+				4'd4 : begin // Wait for PDI
+							spi_byte_out <= 8'b00010000;
+						end
 				default : begin
-							state <= 3'd0;
-							size_byte_count <= 3'd0;
-							img_height <= 16'b0;
-							img_width <= 16'b0;
-							img_height_count <= 16'b0;
-							img_width_count <= 16'b0;
-							spi_byte_out <= 8'b0;
-							bram_addr <= {17{1'b1}};
-							bram_channel <= 2'b00;
-							bram_we <= 1'b0;
+							init_values;
 						end
 			endcase
+		end
+		else if (pdi_done) begin
+			pdi_active <= 1'b0;
+			state <= 3'd0;
 		end
 	end
 
