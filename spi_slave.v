@@ -1,3 +1,28 @@
+/*
+ * Module Name: spi_slave.
+ *
+ * Description: Executes SPI communication.
+ *
+ * Inputs:
+ *    clk - Main clock signal
+ *    rst - Reset signal
+ *    ss - Chip select signal
+ *    mosi - Master out slave in signal
+ *    sck - Communication clock signal
+ *    din - Input byte data to be sent
+ *
+ * Outputs:
+ *    miso - Master in slave out signal
+ *    done - Signal that indicates when a SPI cycle is done (receiving or sending a byte)
+ *    dout - Output byte data received
+ *
+ * Functionality:
+ *    Performs SPI communication.
+ *    When selected by the master (ss), it sends and receives a bit every sck cycle.
+ *    When one byte is received and sent, the done signal is set.
+ *    Source: https://alchitry.com/serial-peripheral-interface-spi-verilog (removed from the website?)
+ */
+
 module spi_slave(
     input clk,				//execution clock
     input rst,				//module reset

@@ -1,3 +1,36 @@
+/*
+ * Module Name: img_processing.
+ *
+ * Description: Executes PDI.
+ *
+ * Inputs:
+ *    clk - Main clock signal
+ *    rst - Reset signal
+ *    active - Signal that activates PDI execution
+ *    red_data_in - Input byte data for red channel
+ *    green_data_in - Input byte data for green channel
+ *    blue_data_in - Input byte data for blue channel
+ *
+ * Outputs:
+ *    done - Signal that indicates when a PDI cycle is done
+ *    red_data_out - Output byte data for red channel
+ *    green_data_out - Output byte data for green channel
+ *    blue_data_out - Output byte data for blue channel
+ *    we - BRAM write enable signal
+ *    addr_read - Address for reading memory
+ *    addr_write - Address for writing memory
+ *    mean - Debug signal
+ *
+ * Functionality:
+ *    State machine that processes PDI.
+ *    States:
+ *      - 000: Initializes values and waits for active signal
+ *      - 001: Accumulates the data for the mean calculation
+ *      - 010: Calculates the mean for each channel
+ *      - 011: Calculates the max mean and prepares the data for the next state
+ *      - 100: Executes the ilumination compesation
+ */
+
 module img_processing(
     input clk,
     input rst,
@@ -64,14 +97,14 @@ module img_processing(
                     end
                     else if (done) begin
                         if (!active) begin
-                            done <= 1'b0;
+                            done <= 1'b0; // Reset done signal when active signal is low
                         end
                     end
                     else begin
                         init_values;
                     end
                 end
-                3'b001: begin
+                3'b001: begin // Accumulate data for the mean calculation
                     addr_read <= addr_read + 1'b1;
                     red_acumulator <= red_acumulator + red_data_in;
                     green_acumulator <= green_acumulator + green_data_in;
@@ -81,7 +114,7 @@ module img_processing(
                         state <= 3'b010;
                     end
                 end
-                3'b010: begin
+                3'b010: begin // Calculate the mean for each channel
                     red_mean <= (red_acumulator/17'd76800);
                     green_mean <= (green_acumulator/17'd76800);
                     blue_mean <= (blue_acumulator/17'd76800);
@@ -89,7 +122,7 @@ module img_processing(
                     addr_read <= 17'd76799;
                     state <= 3'b011;
                 end
-                3'b011: begin
+                3'b011: begin // Calculate the max mean
                     if (red_mean > green_mean && red_mean > blue_mean) begin
                         max_mean <= red_mean;
                     end
@@ -99,7 +132,8 @@ module img_processing(
                     else begin
                         max_mean <= blue_mean;
                     end
-
+                    
+                    // pre-calculate the 76799 pixel value
                     temp_red <= red_data_in*red_mean;
                     temp_green <= green_data_in*green_mean;
                     temp_blue <= blue_data_in*blue_mean;
@@ -108,7 +142,7 @@ module img_processing(
                     addr_write <= {17{1'b1}};
                     state <= 3'b100;
                 end
-                3'b100: begin
+                3'b100: begin // Execute the ilumination compesation
                     we <= 1'b1;
                     addr_read <= addr_read + 1'b1;
                     addr_write <= addr_read - 1'b1;
@@ -124,21 +158,9 @@ module img_processing(
                     blue_data_out <= temp_blue/max_mean;
 
                     if (addr_read >= 17'd76799) begin
-                        // state <= 3'b101;
                         done <= 1'b1;
                         state <= 3'b000;
                     end
-                end
-                3'b101: begin
-                    we <= 1'b1;
-                    addr_write <= 17'd76799;
-
-                    red_data_out <= temp_red/max_mean;
-                    green_data_out <= temp_green/max_mean;
-                    blue_data_out <= temp_blue/max_mean;
-
-                    done <= 1'b1;
-                    state <= 3'b000;
                 end
                 default: begin
                     init_values;

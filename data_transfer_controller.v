@@ -1,3 +1,34 @@
+/*
+ * Module Name: data_transfer_contoller.
+ *
+ * Description: Controls SPI communication.
+ *
+ * Inputs:
+ *    clk - Main clock signal
+ *    rst - Reset signal
+ *    spi_cycle_done - Signal that indicates when a SPI cycle is done for spi_slave (receiving or sending a byte)
+ *    spi_byte_in - Input byte data from spi_slave
+ *	  bram_data_out - Data obtained from BRAM
+ *    pdi_done - Signal that indicates when PDI is done
+ *
+ * Outputs:
+ *    spi_byte_out - Output byte data to spi_slave
+ *    bram_addr - Address for reading and writing memory
+ *    bram_channel - Channel to write data (01:R, 10:G, 11:B)
+ *    bram_we - BRAM write enable signal
+ *    bram_data_in - Data to be written in BRAM
+ *    pdi_active - Signal that activates PDI execution
+ *
+ * Functionality:
+ *    State machine that processes SPI communication data.
+ *    States:
+ *      - 0: Receives the command byte
+ *      - 1: Receives the data image size bytes
+ *      - 2: Receives the image data bytes for one channel and writes to BRAM
+ *      - 3: Sends BRAM data for one channel
+ *      - 4: Run and wait for PDI
+ */
+
 module data_transfer_controller (
 	input clk,
 	input rst,
@@ -32,7 +63,7 @@ module data_transfer_controller (
 			img_height_count <= 16'b0;
 			img_width_count <= 16'b0;
 			spi_byte_out <= 8'b0;
-			bram_addr <= {17{1'b1}};
+			bram_addr <= {17{1'b1}}; // Initial at the maximum value so that when the increment is made the value goes to 0
 			bram_channel <= 2'b00;
 			bram_we <= 1'b0;
 			pdi_active <= 1'b0;
@@ -92,6 +123,7 @@ module data_transfer_controller (
 							bram_addr <= bram_addr + 17'b1;
 							bram_we <= 1'b1;
 							
+							// Update image size counters
 							img_width_count <= img_width_count - 1'b1;
 							if ((img_width_count - 1'b1) == 16'b0) begin
 								img_height_count <= img_height_count - 1'b1;
@@ -109,7 +141,7 @@ module data_transfer_controller (
 							end
 						end
 				4'd4 : begin // Wait for PDI
-							spi_byte_out <= 8'b00010000;
+							spi_byte_out <= 8'b00010000; //Indicates that PDI is running
 						end
 				default : begin
 							init_values;
@@ -117,6 +149,7 @@ module data_transfer_controller (
 			endcase
 		end
 		else if (pdi_done) begin
+			// PDI is done
 			pdi_active <= 1'b0;
 			state <= 3'd0;
 		end

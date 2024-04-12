@@ -1,3 +1,33 @@
+/*
+ * Module Name: top.
+ *
+ * Description: Verilog "main" module.
+ *
+ * Inputs:
+ *    clk - Main clock signal from oscillator (AF14)
+ *    rst - Reset signal from button key0 (AA14)
+ *    ss - Chip select signal from SPI (Y18)
+ *    mosi - Master out slave in signal from SPI (Y17)
+ *    sck - Communication clock signal from SPI (AD17)
+ *
+ * Outputs:
+ *    miso - Master in slave out signal to SPI (AC18)
+ *    hex0 - 7-segment display 0 (AE26, AE27, AE28, AG27, AF28, AG28, AH28)
+ *    hex1 - 7-segment display 1 (AJ29, AH29, AH30, AG30, AF29, AF30, AD27)
+ *    led0 - LED 0 (V16)
+ *    led1 - LED 1 (W16)
+ *    led2 - LED 2 (V17)
+ *    led3 - LED 3 (V18)
+ *    led4 - LED 4 (W17)
+ *    led5 - LED 5 (W19)
+ *    led6 - LED 6 (Y19)
+ *    led7 - LED 7 (W20)
+ *    led8 - LED 8 (W21)
+ *
+ * Functionality:
+ *    Connect the modules to each other.
+ *    Define the inputs and outputs of the sistem.
+ */
 
 module top (
 	//Control
@@ -26,10 +56,12 @@ module top (
 	output led8
 );
 
+	// SPI wires
 	wire spi_cycle_done;
 	wire [7:0] data_to_send;
 	wire [7:0] data_received;
 	
+	// BRAM wires
 	wire com_we;
 	wire pdi_we;
 	wire [1:0] bram_channel;
@@ -39,6 +71,7 @@ module top (
 	wire [16:0] pdi_addr_read;
 	wire [16:0] pdi_addr_write;
 
+	// Image processing wires
 	wire pdi_active;
 	wire pdi_done;
 	wire [7:0] mean;
@@ -49,6 +82,7 @@ module top (
 	wire [7:0] green_data_out;
 	wire [7:0] blue_data_out;
 	
+	// LEDs assignments
 	assign led0 = pdi_addr_read[0];
 	assign led1 = pdi_addr_read[1];
 	assign led2 = pdi_addr_read[2];
@@ -135,18 +169,5 @@ module top (
 		.din(data_to_send),
 		.dout(data_received)
 	);
-
-//	test_spi spi(
-//		.clk(clk),
-//		.rst(rst),
-//		.ss(ss),
-//		.mosi(mosi),
-//		.miso(miso),
-//		.sck(sck),
-//		.done(done),
-//		.din(data_to_send),
-//		.dout(data_received),
-//		.count(count)
-//	);
 
 endmodule
