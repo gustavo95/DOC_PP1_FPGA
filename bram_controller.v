@@ -65,12 +65,12 @@ module bram_controller(
     // Siwth between PDI and COM modes
     always @ (*) begin
 		if (pdi_active) begin
-			addr_read <= pdi_addr_read;
-            addr_write <= pdi_addr_write;
+			addr_read = pdi_addr_read;
+            addr_write = pdi_addr_write;
 		end
 		else begin
-			addr_read <= com_addr;
-            addr_write <= com_addr;
+			addr_read = com_addr;
+            addr_write = com_addr;
 		end
 	end
 
@@ -78,22 +78,22 @@ module bram_controller(
     always @ (*) begin
         case (channel)
             2'b10 : begin  // green channel
-                red_we <= 1'b0;
-                green_we <= com_we;
-                blue_we <= 1'b0;
-                data_out <= green_data_out;
+                red_we = 1'b0;
+                green_we = com_we;
+                blue_we = 1'b0;
+                data_out = green_data_out;
             end
             2'b11 : begin // blue channel
-                red_we <= 1'b0;
-                green_we <= 1'b0;
-                blue_we <= com_we;
-                data_out <= blue_data_out;
+                red_we = 1'b0;
+                green_we = 1'b0;
+                blue_we = com_we;
+                data_out = blue_data_out;
             end
             default : begin // red channel
-                red_we <= com_we;
-                green_we <= 1'b0;
-                blue_we <= 1'b0;
-                data_out <= red_data_out;
+                red_we = com_we;
+                green_we = 1'b0;
+                blue_we = 1'b0;
+                data_out = red_data_out;
             end
         endcase
     end
