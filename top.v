@@ -90,17 +90,17 @@ module top (
 	assign led4 = pdi_addr_write[1];
 	assign led5 = pdi_addr_write[2];
 	assign led6 = data_received[6];
-	assign led7 = bram_channel[0];
-	assign led8 = pdi_done;
+	assign led7 = sck;
+	assign led8 = ~ss;
 	
 	// 7-segments modules
 	segment7 segment_seven_0 (
-		.bcd(mean[3:0]),
+		.bcd(data_received[3:0]),
 		.seg(hex0)
 	);
 	
 	segment7 segment_seven_1 (
-		.bcd(mean[7:4]),
+		.bcd(data_received[7:4]),
 		.seg(hex1)
 	);
 
