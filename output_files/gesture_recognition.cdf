@@ -6,7 +6,7 @@ JedecChain;
 	P ActionCode(Ign)
 		Device PartName(SOCVHPS) MfrSpec(OpMask(0));
 	P ActionCode(Cfg)
-		Device PartName(5CSEMA5F31) Path("C:/Users/gusta/Documents/Doutorado_UFRN/Disciplinas/Projeto de pesquisa 1/DOC_PP1_FPGA/") File("gesture_recognition.sof") MfrSpec(OpMask(1));
+		Device PartName(5CSEMA5F31) Path("C:/Users/gusta/Documents/Doutorado_UFRN/Disciplinas/Projeto de pesquisa 1/DOC_PP1_FPGA/output_files/") File("gesture_recognition.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 

@@ -158,9 +158,63 @@ module img_processing(
                     blue_data_out <= temp_blue/max_mean;
 
                     if (addr_read >= 17'd76799) begin
+                        state <= 3'b101;
+                        addr_read <= 17'd0;
+                        addr_write <= 17'd0;
+                    end
+                end
+                3'b101: begin // Convert RGb to YCbCr
+                    we <= 1'b1;
+                    addr_read <= addr_read + 1'b1;
+                    addr_write <= addr_read;
+
+                    // Y
+                    // red_data_out <= 16 + ((
+                    //         (red_data_in<<6) + (red_data_in<<1) +
+                    //         (green_data_in<<7) + green_data_in +
+                    //         (blue_data_in<<4) + (blue_data_in<<3) + blue_data_in
+                    //     )>>8);
+
+                    // Cb
+                    green_data_out <= 128 + ((
+                            -((red_data_in<<5) + (red_data_in<<2) + (red_data_in<<1)) -
+                            ((green_data_in<<6) + (green_data_in<<3) + (green_data_in<<1)) +
+                            (blue_data_in<<7) - (blue_data_in<<4)
+                        )>>8);
+
+                    // Cr
+                    blue_data_out <= 128 + ((
+                            (red_data_in<<7) - (red_data_in<<4) -
+                            ((green_data_in<<6) + (green_data_in<<5) - (green_data_in<<1)) -
+                            ((blue_data_in<<4) + (blue_data_in<<1))
+                        )>>8);
+
+                    if (addr_read >= 17'd76799) begin
+                        state <= 3'b110;
+                        addr_read <= 17'd0;
+                        addr_write <= 17'd0;
+                    end 
+                end
+                3'b110: begin
+                    we <= 1'b1;
+                    addr_read <= addr_read + 1'b1;
+                    addr_write <= addr_read;
+
+                    if (green_data_in > 95 && green_data_in < 120 && blue_data_in > 140 && blue_data_in < 170) begin
+                        red_data_out <= 255;
+                        green_data_out <= 255;
+                        blue_data_out <= 255;
+                    end
+                    else begin
+                        red_data_out <= 0;
+                        green_data_out <= 0;
+                        blue_data_out <= 0;
+                    end
+
+                    if (addr_read >= 17'd76799) begin
                         done <= 1'b1;
                         state <= 3'b000;
-                    end
+                    end 
                 end
                 default: begin
                     init_values;
