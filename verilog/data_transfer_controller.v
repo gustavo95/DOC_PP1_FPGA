@@ -43,16 +43,22 @@ module data_transfer_controller (
 	output reg [7:0] bram_data_in,
 	input [7:0] bram_data_out,
 
+	input [16:0] hand_area,
+	input [16:0] hand_perimeter,
+
 	output reg pdi_active,
-	input pdi_done
+	input pdi_done,
+	output reg [2:0] state
 );
 
-	reg [2:0]  state;
+	// reg [2:0]  state;
 	reg [2:0]  size_byte_count;
 	reg [15:0] img_height; // or data_size
 	reg [15:0] img_width;
 	reg [15:0] img_height_count;
 	reg [15:0] img_width_count;
+	reg [2:0] int_count;
+	reg [31:0] int_data;
 
 	task init_values;
 		begin
@@ -68,6 +74,7 @@ module data_transfer_controller (
 			bram_we <= 1'b0;
 			pdi_active <= 1'b0;
 			bram_data_in <= 8'b0;
+			int_count <= 2'b00;
 		end
 	endtask
 
@@ -78,19 +85,27 @@ module data_transfer_controller (
 		else if (spi_cycle_done) begin
 			case (state)
 				3'd0 : begin // Recives the command byte
-							if (spi_byte_in[3:2] == 2'b01) begin
+							if (spi_byte_in[5:2] == 4'b0001) begin
 								state <= 3'd1;
 								size_byte_count <= 3'd4;
 								bram_channel <= spi_byte_in[1:0];
 							end
-							else if (spi_byte_in[3:2] == 2'b10) begin
+							else if (spi_byte_in[5:2] == 4'b0010) begin
 								state <= 3'd3;
 								bram_addr <= 17'b0;
 								bram_channel <= spi_byte_in[1:0];
 							end
-							else if (spi_byte_in[3:2] == 2'b11) begin
+							else if (spi_byte_in[5:2] == 4'b0011) begin
 								state <= 3'd4;
 								pdi_active <= 1'b1;
+							end
+							else if (spi_byte_in[5:2] == 4'b0100) begin
+								state <= 3'd5;
+								int_data <= hand_area;
+							end
+							else if (spi_byte_in[5:2] == 4'b0101) begin
+								state <= 3'd5;
+								int_data <= hand_perimeter;
 							end
 							else begin
 								init_values;
@@ -140,8 +155,24 @@ module data_transfer_controller (
 								state <= 3'd0;
 							end
 						end
-				4'd4 : begin // Wait for PDI
-							spi_byte_out <= 8'b00010000; //Indicates that PDI is running
+				3'd4 : begin // Wait for PDI
+							spi_byte_out <= 8'b01000000; //Indicates that PDI is running
+						end
+				3'd5 : begin // send 32 bit int
+							int_count <= int_count + 1'b1;
+							if (int_count == 3'b000) begin
+								spi_byte_out <= int_data[31:24];
+							end
+							else if (int_count == 3'b001) begin
+								spi_byte_out <= int_data[23:16];
+							end
+							else if (int_count == 3'b010) begin
+								spi_byte_out <= int_data[15:8];
+							end
+							else if (int_count == 3'b011) begin
+								spi_byte_out <= int_data[7:0];
+								state <= 3'd0;
+							end
 						end
 				default : begin
 							init_values;

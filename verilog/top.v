@@ -56,6 +56,8 @@ module top (
 	output led8
 );
 
+	wire [2:0] state;
+
 	// SPI wires
 	wire spi_cycle_done;
 	wire [7:0] data_to_send;
@@ -74,18 +76,19 @@ module top (
 	// Image processing wires
 	wire pdi_active;
 	wire pdi_done;
-	wire [7:0] mean;
 	wire [7:0] red_data_in;
 	wire [7:0] green_data_in;
 	wire [7:0] blue_data_in;
 	wire [7:0] red_data_out;
 	wire [7:0] green_data_out;
 	wire [7:0] blue_data_out;
+	wire [16:0] hand_area;
+	wire [16:0] hand_perimeter;
 	
 	// LEDs assignments
-	assign led0 = pdi_addr_read[0];
-	assign led1 = pdi_addr_read[1];
-	assign led2 = pdi_addr_read[2];
+	assign led0 = state[0];
+	assign led1 = state[1];
+	assign led2 = state[2];
 	assign led3 = pdi_addr_write[0];
 	assign led4 = pdi_addr_write[1];
 	assign led5 = pdi_addr_write[2];
@@ -95,12 +98,12 @@ module top (
 	
 	// 7-segments modules
 	segment7 segment_seven_0 (
-		.bcd(data_to_send[3:0]),
+		.bcd(hand_area[3:0]),
 		.seg(hex0)
 	);
 	
 	segment7 segment_seven_1 (
-		.bcd(data_to_send[7:4]),
+		.bcd(hand_area[7:4]),
 		.seg(hex1)
 	);
 
@@ -119,7 +122,8 @@ module top (
 		.we(pdi_we),
 		.addr_read(pdi_addr_read),
 		.addr_write(pdi_addr_write),
-		.mean(mean)
+		.hand_area(hand_area),
+		.hand_perimeter(hand_perimeter)
 	);
 	
 	// Storage modules
@@ -155,7 +159,10 @@ module top (
 		.bram_data_in(bram_data_in),
 		.bram_data_out(bram_data_out),
 		.pdi_active(pdi_active),
-		.pdi_done(pdi_done)
+		.pdi_done(pdi_done),
+		.hand_area(hand_area),
+		.hand_perimeter(hand_perimeter),
+		.state(state)
 	);
 	
 	spi_slave_2 spi(
