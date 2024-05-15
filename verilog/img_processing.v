@@ -79,7 +79,7 @@ module img_processing(
     reg [7:0] previous_pixel;
     reg [16:0] reference_x;
     reg [16:0] init_x;
-    reg [16:0] init_y;
+    // reg [16:0] init_y;
     reg [16:0] current_x;
     reg [16:0] current_y;
 
@@ -99,6 +99,16 @@ module img_processing(
     wire [16:0] dx;
     wire [16:0] dy;
     wire [34:0] distance_squared;
+
+    wire signed [18:0] edge_offset;
+    wire signed [18:0] edge_candidate_calc;
+    wire signed [18:0] neighbor_offset;
+    wire signed [18:0] neighbor_calc;
+
+    assign edge_offset = directions[(current_direction + direction_index) % 8][0] == 2 ?  prev_edge - 17'd320 : prev_edge + (directions[(current_direction + direction_index) % 8][0] * 320);
+    assign edge_candidate_calc = directions[(current_direction + direction_index) % 8][1] == 2 ? edge_offset - 1 : edge_offset + directions[(current_direction + direction_index) % 8][1];
+    assign neighbor_offset = directions[neighbor_index][0] == 2 ?  edge_candidate - 17'd320 : edge_candidate + (directions[neighbor_index][0] * 320);
+    assign neighbor_calc = directions[neighbor_index][1] == 2 ? neighbor_offset - 1 : neighbor_offset + directions[neighbor_index][1];
 
     assign dx = (current_x > reference_x) ? (current_x - reference_x) : (reference_x - current_x);
     assign dy = (current_y > 17'd239) ? (current_y - 17'd239) : (17'd239 - current_y);
@@ -127,7 +137,7 @@ module img_processing(
             previous_pixel <= 8'b0;
             reference_x <= 17'b0;
             init_x <= 17'b0;
-            init_y <= 17'b0;
+            // init_y <= 17'b0;
             current_x <= 17'b0;
             current_y <= 17'b0;
             // max_distance <= 35'b0;
@@ -138,14 +148,14 @@ module img_processing(
             first_edge <= 17'b0;
             edge_candidate <= 17'b0;
 
-            directions[0][0] = -1; directions[0][1] = -1;
-            directions[1][0] = -1; directions[1][1] = 0;
-            directions[2][0] = -1; directions[2][1] = 1;
+            directions[0][0] = 2; directions[0][1] = 2;
+            directions[1][0] = 2; directions[1][1] = 0;
+            directions[2][0] = 2; directions[2][1] = 1;
             directions[3][0] = 0;  directions[3][1] = 1;
             directions[4][0] = 1;  directions[4][1] = 1;
             directions[5][0] = 1;  directions[5][1] = 0;
-            directions[6][0] = 1;  directions[6][1] = -1;
-            directions[7][0] = 0;  directions[7][1] = -1;
+            directions[6][0] = 1;  directions[6][1] = 2;
+            directions[7][0] = 0;  directions[7][1] = 2;
         end
     endtask
 
@@ -155,7 +165,7 @@ module img_processing(
         end
         else begin
             case (state)
-                4'd0: begin
+                4'd0: begin // Wait for active signal
                     if (active && !done) begin
                         state <= 4'd1;
                     end
@@ -171,6 +181,7 @@ module img_processing(
                 4'd1: begin // Accumulate data for the mean calculation
                     hand_area <= 17'b0;
                     hand_perimeter <= 17'b0;
+                    max_distance <= 35'b0;
 
                     addr_read <= addr_read + 1'b1;
                     red_acumulator <= red_acumulator + red_data_in;
@@ -210,6 +221,7 @@ module img_processing(
                     state <= 4'd4;
                 end
                 4'd4: begin // Execute the ilumination compesation
+                    //todo: need time improvement
                     we <= 1'b1;
                     addr_read <= addr_read + 1'b1;
                     addr_write <= addr_read - 1'b1;
@@ -243,14 +255,14 @@ module img_processing(
                     //     )>>8);
 
                     // Cb
-                    green_data_out <= 8'd128 + ((
+                    green_data_out <= 128 + ((
                             -((red_data_in<<5) + (red_data_in<<2) + (red_data_in<<1)) -
                             ((green_data_in<<6) + (green_data_in<<3) + (green_data_in<<1)) +
                             (blue_data_in<<7) - (blue_data_in<<4)
                         )>>8);
 
                     // Cr
-                    blue_data_out <= 8'd128 + ((
+                    blue_data_out <= 128 + ((
                             (red_data_in<<7) - (red_data_in<<4) -
                             ((green_data_in<<6) + (green_data_in<<5) - (green_data_in<<1)) -
                             ((blue_data_in<<4) + (blue_data_in<<1))
@@ -484,7 +496,7 @@ module img_processing(
                     we <= 1'b0;
                     addr_read <= addr_read + 1'b1;
 
-                    if (red_data_in == 8'd255) begin
+                    if (red_data_in > 8'b0) begin
                         hand_area <= hand_area + 17'd1;
                     end
 
@@ -504,41 +516,46 @@ module img_processing(
                     previous_pixel <= red_data_in;
 
                     if (addr_read >= 17'd76799) begin
-                        init_x <= (init_x<<1) - 17'd76479;
-                        init_y <= 17'd239;
+                        // init_x <= (init_x<<1) - 17'd76479;
+                        // init_y <= 17'd239;
                         current_x <= (init_x<<1) - 17'd76479;
                         current_y <= 17'd239;
                         addr_read <= init_x<<1;
                         first_edge <= init_x<<1;
-                        aux_index <= 3'b0;
+                        edge_candidate <= init_x<<1;
+                        aux_index <= 3'b000;
+                        distance_buffer_index <= 10'd0;
                         state <= 4'd12;
                     end
                 end
                 4'd12: begin // Find distance between reference point and edge pixels
                     if (aux_index == 3'b000) begin // Calculate distance between reference point and edge pixels
                         distance_buffer[distance_buffer_index] <= distance_squared;
-                        distance_buffer_index <= distance_buffer_index + 1'b1;
-                        prev_edge <= addr_read;
+                        distance_buffer_index <= distance_buffer_index + 1'd1;
+                        prev_edge <= edge_candidate;
                         direction_index <= 3'd0;
-                        neighbor_index <= 4'b0;
                         aux_index <= 3'b001;
                         if (distance_squared > max_distance) begin
                             max_distance <= distance_squared;
                         end
+                        if (distance_buffer_index >= 10'd899) begin
+                            state <= 4'd13;
+                        end
                     end
                     if (aux_index == 3'b001) begin // Find next pixel
-                        addr_read <= prev_edge + directions[(current_direction + direction_index) % 8][0] * 320 + directions[(current_direction + direction_index) % 8][1];
-                        // edge_candidate <= prev_edge + directions[(current_direction + direction_index) % 8][0] * 320 + directions[(current_direction + direction_index) % 8][1];
+                        addr_read <= edge_candidate_calc;
+                        edge_candidate <= edge_candidate_calc;
                         if (direction_index > 3'd7) begin // No edge pixel found
                             state <= 4'd13;
                         end
+                        neighbor_index <= 4'b000;
                         aux_index <= 3'b010;
                     end
                     if (aux_index == 3'b010) begin // Check if next pixel is hand pixel
                         if (red_data_in > 8'd0) begin // Is hand pixel
                             aux_index <= 3'b011;
                             neighbor_index <= 3'b001;
-                            addr_read <= edge_candidate + directions[neighbor_index][0] * 320 + directions[neighbor_index][1];
+                            addr_read <= neighbor_calc;
                         end
                         else begin // Search for next edge candidate
                             direction_index <= direction_index + 1'b1;
@@ -547,18 +564,19 @@ module img_processing(
                     end
                     if (aux_index == 3'b011) begin // Check if next pixel in edge pixel
                         if(red_data_in == 8'd0) begin // Edge pixel
-                            current_direction <= (current_direction + direction_index) % 8;
+                            current_direction <= (current_direction + direction_index + 6) % 8;
                             current_x <= edge_candidate % 320;
                             current_y <= edge_candidate / 320;
-                            if (edge_candidate == first_edge) begin
+                            if ((edge_candidate == first_edge) || ((edge_candidate / 320) >= 17'd239)) begin
                                 state <= 4'd13;
                             end
                             else begin
                                 aux_index <= 3'b000;
                             end
+                            // state <= 4'd13;
                         end
                         else begin // Search for next edge candidate neighbor
-                            addr_read <= edge_candidate + directions[neighbor_index][0] * 320 + directions[neighbor_index][1];
+                            addr_read <= neighbor_calc;
                             neighbor_index <= neighbor_index + 1'b1;
                             if (neighbor_index == 4'b1000) begin // Is not edge pixel
                                 direction_index <= direction_index + 1'b1;
@@ -568,6 +586,7 @@ module img_processing(
                     end
                 end
                 4'd13: begin
+                    // max_distance <= distance_buffer[5];
                     done <= 1'b1;
                     state <= 4'd0;
                 end
