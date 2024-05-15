@@ -49,7 +49,8 @@ module img_processing(
     output reg [16:0] addr_read,
     output reg [16:0] addr_write,
     output reg [16:0] hand_area,
-    output reg [16:0] hand_perimeter
+    output reg [16:0] hand_perimeter,
+    output reg [34:0] max_distance
 );
 
     reg [3:0] state;
@@ -69,14 +70,39 @@ module img_processing(
 
     reg [16:0] morphology_index_collumn;
     reg [16:0] morphology_index_row;
-    reg [2:0] morphology_kernel_index;
+    reg [2:0] aux_index;
     reg [4:0] morphology_kernel;
 
     // reg [16:0] hand_area;
     // reg [16:0] hand_perimeter;
-    reg [16:0] left_thumb_box;
-    reg [16:0] right_thumb_box;
+
     reg [7:0] previous_pixel;
+    reg [16:0] reference_x;
+    reg [16:0] init_x;
+    reg [16:0] init_y;
+    reg [16:0] current_x;
+    reg [16:0] current_y;
+
+    reg [34:0] distance_buffer [899:0];
+    // reg [34:0] max_distance;
+    reg [9:0] distance_buffer_index;
+
+    reg signed [3:0] directions [0:7][0:1];
+    reg [2:0] current_direction;
+    reg [3:0] direction_index;
+    reg [3:0] neighbor_index;
+
+    reg [16:0] first_edge;
+    reg [16:0] prev_edge;
+    reg [16:0] edge_candidate;
+
+    wire [16:0] dx;
+    wire [16:0] dy;
+    wire [34:0] distance_squared;
+
+    assign dx = (current_x > reference_x) ? (current_x - reference_x) : (reference_x - current_x);
+    assign dy = (current_y > 17'd239) ? (current_y - 17'd239) : (17'd239 - current_y);
+    assign distance_squared = (dx*dx) + (dy*dy);
 
     task init_values;
         begin
@@ -96,11 +122,30 @@ module img_processing(
             temp_red <= 16'b0;
             morphology_index_collumn <= 17'b0;
             morphology_index_row <= 17'b0;
-            morphology_kernel_index <= 3'b0;
+            aux_index <= 3'b0;
             morphology_kernel <= 5'b0;
-            left_thumb_box <= 17'b0;
-            right_thumb_box <= 17'b0;
             previous_pixel <= 8'b0;
+            reference_x <= 17'b0;
+            init_x <= 17'b0;
+            init_y <= 17'b0;
+            current_x <= 17'b0;
+            current_y <= 17'b0;
+            // max_distance <= 35'b0;
+            distance_buffer_index <= 10'b0;
+            current_direction <= 3'b0;
+            direction_index <= 4'b0;
+            neighbor_index <= 4'b0;
+            first_edge <= 17'b0;
+            edge_candidate <= 17'b0;
+
+            directions[0][0] = -1; directions[0][1] = -1;
+            directions[1][0] = -1; directions[1][1] = 0;
+            directions[2][0] = -1; directions[2][1] = 1;
+            directions[3][0] = 0;  directions[3][1] = 1;
+            directions[4][0] = 1;  directions[4][1] = 1;
+            directions[5][0] = 1;  directions[5][1] = 0;
+            directions[6][0] = 1;  directions[6][1] = -1;
+            directions[7][0] = 0;  directions[7][1] = -1;
         end
     endtask
 
@@ -198,14 +243,14 @@ module img_processing(
                     //     )>>8);
 
                     // Cb
-                    green_data_out <= 128 + ((
+                    green_data_out <= 8'd128 + ((
                             -((red_data_in<<5) + (red_data_in<<2) + (red_data_in<<1)) -
                             ((green_data_in<<6) + (green_data_in<<3) + (green_data_in<<1)) +
                             (blue_data_in<<7) - (blue_data_in<<4)
                         )>>8);
 
                     // Cr
-                    blue_data_out <= 128 + ((
+                    blue_data_out <= 8'd128 + ((
                             (red_data_in<<7) - (red_data_in<<4) -
                             ((green_data_in<<6) + (green_data_in<<5) - (green_data_in<<1)) -
                             ((blue_data_in<<4) + (blue_data_in<<1))
@@ -217,7 +262,7 @@ module img_processing(
                         addr_write <= 17'd0;
                     end 
                 end
-                4'd6: begin
+                4'd6: begin // binarization
                     we <= 1'b1;
                     addr_read <= addr_read + 1'b1;
                     addr_write <= addr_read;
@@ -237,49 +282,49 @@ module img_processing(
                         state <= 4'd7;
                         morphology_index_collumn <= 17'd1;
                         morphology_index_row <= 17'd320;
-                        morphology_kernel_index <= 3'b001;
+                        aux_index <= 3'b001;
                         addr_read <= 17'd1;
                         addr_write <= 17'd321;
                         we <= 1'b0;
                     end 
                 end
-                4'd7: begin
-                    if (morphology_kernel_index >= 3'b110) begin
-                        morphology_kernel_index <= 3'b0;
+                4'd7: begin // Erosion
+                    if (aux_index >= 3'b110) begin
+                        aux_index <= 3'b0;
                     end
                     else begin
-                        morphology_kernel_index <= morphology_kernel_index + 1'b1;
+                        aux_index <= aux_index + 1'b1;
                     end
 
-                    if (morphology_kernel_index == 3'b000) begin
+                    if (aux_index == 3'b000) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row - 17'd320;
                     end
-                    else if (morphology_kernel_index == 3'b001) begin
+                    else if (aux_index == 3'b001) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row - 17'd1;
                         morphology_kernel[0] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b010) begin
+                    else if (aux_index == 3'b010) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row;
                         morphology_kernel[1] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b011) begin
+                    else if (aux_index == 3'b011) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row + 17'd1;
                         morphology_kernel[2] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b100) begin
+                    else if (aux_index == 3'b100) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row + 17'd320;
                         morphology_kernel[3] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b101) begin
+                    else if (aux_index == 3'b101) begin
                         we <= 1'b0;
                         morphology_kernel[4] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b110) begin
+                    else if (aux_index == 3'b110) begin
                         we <= 1'b1;
                         addr_write <= morphology_index_collumn + morphology_index_row;
 
@@ -314,7 +359,7 @@ module img_processing(
                         addr_write <= 17'd0;
                     end
                 end
-                4'd8: begin
+                4'd8: begin // Erosion finalization
                     we <= 1'b1;
                     addr_read <= addr_read + 1'b1;
                     addr_write <= addr_read;
@@ -334,49 +379,49 @@ module img_processing(
                         state <= 4'd9;
                         morphology_index_collumn <= 17'd1;
                         morphology_index_row <= 17'd320;
-                        morphology_kernel_index <= 3'b001;
+                        aux_index <= 3'b001;
                         addr_read <= 17'd1;
                         addr_write <= 17'd321;
                         we <= 1'b0;
                     end 
                 end
-                4'd9: begin
-                    if (morphology_kernel_index >= 3'b110) begin
-                        morphology_kernel_index <= 3'b0;
+                4'd9: begin // Dilate
+                    if (aux_index >= 3'b110) begin
+                        aux_index <= 3'b0;
                     end
                     else begin
-                        morphology_kernel_index <= morphology_kernel_index + 1'b1;
+                        aux_index <= aux_index + 1'b1;
                     end
 
-                    if (morphology_kernel_index == 3'b000) begin
+                    if (aux_index == 3'b000) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row - 17'd320;
                     end
-                    else if (morphology_kernel_index == 3'b001) begin
+                    else if (aux_index == 3'b001) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row - 17'd1;
                         morphology_kernel[0] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b010) begin
+                    else if (aux_index == 3'b010) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row;
                         morphology_kernel[1] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b011) begin
+                    else if (aux_index == 3'b011) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row + 17'd1;
                         morphology_kernel[2] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b100) begin
+                    else if (aux_index == 3'b100) begin
                         we <= 1'b0;
                         addr_read <= morphology_index_collumn + morphology_index_row + 17'd320;
                         morphology_kernel[3] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b101) begin
+                    else if (aux_index == 3'b101) begin
                         we <= 1'b0;
                         morphology_kernel[4] <= red_data_in[0];
                     end
-                    else if (morphology_kernel_index == 3'b110) begin
+                    else if (aux_index == 3'b110) begin
                         we <= 1'b1;
                         addr_write <= morphology_index_collumn + morphology_index_row;
 
@@ -414,7 +459,7 @@ module img_processing(
                         addr_write <= 17'd0;
                     end
                 end
-                4'd10: begin
+                4'd10: begin // dilate finalization
                     we <= 1'b1;
                     addr_read <= addr_read + 1'b1;
                     addr_write <= addr_read;
@@ -435,7 +480,7 @@ module img_processing(
                         addr_read <= 17'd0;
                     end
                 end
-                4'd11: begin
+                4'd11: begin // Calculate hand area and perimeter, find refecence point and init point
                     we <= 1'b0;
                     addr_read <= addr_read + 1'b1;
 
@@ -445,14 +490,86 @@ module img_processing(
 
                     if (red_data_in != previous_pixel) begin
                         hand_perimeter <= hand_perimeter + 17'd1;
+
+                        if (addr_read >= 17'd76480) begin
+                            if (init_x == 17'd0 && red_data_in == 8'd255) begin
+                                init_x <= (addr_read>>1);
+                            end
+                            else if (init_x != 17'd0 && red_data_in == 8'd0) begin
+                                reference_x <= ((addr_read>>1) + init_x) - 17'd76480;
+                            end
+                        end
                     end
 
                     previous_pixel <= red_data_in;
 
                     if (addr_read >= 17'd76799) begin
-                        done <= 1'b1;
-                        state <= 4'd0;
+                        init_x <= (init_x<<1) - 17'd76479;
+                        init_y <= 17'd239;
+                        current_x <= (init_x<<1) - 17'd76479;
+                        current_y <= 17'd239;
+                        addr_read <= init_x<<1;
+                        first_edge <= init_x<<1;
+                        aux_index <= 3'b0;
+                        state <= 4'd12;
                     end
+                end
+                4'd12: begin // Find distance between reference point and edge pixels
+                    if (aux_index == 3'b000) begin // Calculate distance between reference point and edge pixels
+                        distance_buffer[distance_buffer_index] <= distance_squared;
+                        distance_buffer_index <= distance_buffer_index + 1'b1;
+                        prev_edge <= addr_read;
+                        direction_index <= 3'd0;
+                        neighbor_index <= 4'b0;
+                        aux_index <= 3'b001;
+                        if (distance_squared > max_distance) begin
+                            max_distance <= distance_squared;
+                        end
+                    end
+                    if (aux_index == 3'b001) begin // Find next pixel
+                        addr_read <= prev_edge + directions[(current_direction + direction_index) % 8][0] * 320 + directions[(current_direction + direction_index) % 8][1];
+                        // edge_candidate <= prev_edge + directions[(current_direction + direction_index) % 8][0] * 320 + directions[(current_direction + direction_index) % 8][1];
+                        if (direction_index > 3'd7) begin // No edge pixel found
+                            state <= 4'd13;
+                        end
+                        aux_index <= 3'b010;
+                    end
+                    if (aux_index == 3'b010) begin // Check if next pixel is hand pixel
+                        if (red_data_in > 8'd0) begin // Is hand pixel
+                            aux_index <= 3'b011;
+                            neighbor_index <= 3'b001;
+                            addr_read <= edge_candidate + directions[neighbor_index][0] * 320 + directions[neighbor_index][1];
+                        end
+                        else begin // Search for next edge candidate
+                            direction_index <= direction_index + 1'b1;
+                            aux_index <= 3'b001;
+                        end
+                    end
+                    if (aux_index == 3'b011) begin // Check if next pixel in edge pixel
+                        if(red_data_in == 8'd0) begin // Edge pixel
+                            current_direction <= (current_direction + direction_index) % 8;
+                            current_x <= edge_candidate % 320;
+                            current_y <= edge_candidate / 320;
+                            if (edge_candidate == first_edge) begin
+                                state <= 4'd13;
+                            end
+                            else begin
+                                aux_index <= 3'b000;
+                            end
+                        end
+                        else begin // Search for next edge candidate neighbor
+                            addr_read <= edge_candidate + directions[neighbor_index][0] * 320 + directions[neighbor_index][1];
+                            neighbor_index <= neighbor_index + 1'b1;
+                            if (neighbor_index == 4'b1000) begin // Is not edge pixel
+                                direction_index <= direction_index + 1'b1;
+                                aux_index <= 3'b001;
+                            end
+                        end
+                    end
+                end
+                4'd13: begin
+                    done <= 1'b1;
+                    state <= 4'd0;
                 end
                 default: begin
                     init_values;

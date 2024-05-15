@@ -84,6 +84,7 @@ module top (
 	wire [7:0] blue_data_out;
 	wire [16:0] hand_area;
 	wire [16:0] hand_perimeter;
+	wire [34:0] max_distance;
 	
 	// LEDs assignments
 	assign led0 = state[0];
@@ -123,7 +124,8 @@ module top (
 		.addr_read(pdi_addr_read),
 		.addr_write(pdi_addr_write),
 		.hand_area(hand_area),
-		.hand_perimeter(hand_perimeter)
+		.hand_perimeter(hand_perimeter),
+		.max_distance(max_distance)
 	);
 	
 	// Storage modules
@@ -162,7 +164,8 @@ module top (
 		.pdi_done(pdi_done),
 		.hand_area(hand_area),
 		.hand_perimeter(hand_perimeter),
-		.state(state)
+		.state(state),
+		.max_distance(max_distance)
 	);
 	
 	spi_slave_2 spi(

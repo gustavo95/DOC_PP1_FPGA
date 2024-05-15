@@ -45,6 +45,7 @@ module data_transfer_controller (
 
 	input [16:0] hand_area,
 	input [16:0] hand_perimeter,
+	input [34:0] max_distance,
 
 	output reg pdi_active,
 	input pdi_done,
@@ -101,11 +102,13 @@ module data_transfer_controller (
 							end
 							else if (spi_byte_in[5:2] == 4'b0100) begin
 								state <= 3'd5;
-								int_data <= hand_area;
+								// int_data <= hand_area;
+								int_data <= max_distance[31:0];
 							end
 							else if (spi_byte_in[5:2] == 4'b0101) begin
 								state <= 3'd5;
-								int_data <= hand_perimeter;
+								// int_data <= hand_perimeter;
+								int_data <= max_distance[34:32];
 							end
 							else begin
 								init_values;
