@@ -85,6 +85,8 @@ module top (
 	wire [16:0] hand_area;
 	wire [16:0] hand_perimeter;
 	wire [34:0] max_distance;
+	wire [9:0] peaks;
+	wire [3:0] classification;
 	
 	// LEDs assignments
 	assign led0 = state[0];
@@ -99,12 +101,12 @@ module top (
 	
 	// 7-segments modules
 	segment7 segment_seven_0 (
-		.bcd(hand_area[3:0]),
+		.bcd(4'b0000),
 		.seg(hex0)
 	);
 	
 	segment7 segment_seven_1 (
-		.bcd(hand_area[7:4]),
+		.bcd(4'b0000),
 		.seg(hex1)
 	);
 
@@ -125,7 +127,9 @@ module top (
 		.addr_write(pdi_addr_write),
 		.hand_area(hand_area),
 		.hand_perimeter(hand_perimeter),
-		.max_distance(max_distance)
+		.max_distance(max_distance),
+		.peaks(peaks),
+		.classification(classification)
 	);
 	
 	// Storage modules
@@ -165,7 +169,9 @@ module top (
 		.hand_area(hand_area),
 		.hand_perimeter(hand_perimeter),
 		.state(state),
-		.max_distance(max_distance)
+		.max_distance(max_distance),
+		.peaks(peaks),
+		.classification(classification)
 	);
 	
 	spi_slave_2 spi(

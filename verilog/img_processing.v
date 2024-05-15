@@ -50,7 +50,9 @@ module img_processing(
     output reg [16:0] addr_write,
     output reg [16:0] hand_area,
     output reg [16:0] hand_perimeter,
-    output reg [34:0] max_distance
+    output reg [34:0] max_distance,
+    output reg [9:0] peaks,
+    output reg [3:0] classification 
 );
 
     reg [3:0] state;
@@ -86,6 +88,7 @@ module img_processing(
     reg [34:0] distance_buffer [899:0];
     // reg [34:0] max_distance;
     reg [9:0] distance_buffer_index;
+    reg [9:0] max_distance_index;
 
     reg signed [3:0] directions [0:7][0:1];
     reg [2:0] current_direction;
@@ -95,6 +98,11 @@ module img_processing(
     reg [16:0] first_edge;
     reg [16:0] prev_edge;
     reg [16:0] edge_candidate;
+
+    reg [9:0] prev_index;
+    reg [34:0] prev_distance;
+    reg [34:0] prev_prev_distance;
+    // reg [9:0] peaks;
 
     wire [16:0] dx;
     wire [16:0] dy;
@@ -142,11 +150,16 @@ module img_processing(
             current_y <= 17'b0;
             // max_distance <= 35'b0;
             distance_buffer_index <= 10'b0;
+            max_distance_index <= 10'b0;
             current_direction <= 3'b0;
             direction_index <= 4'b0;
             neighbor_index <= 4'b0;
             first_edge <= 17'b0;
             edge_candidate <= 17'b0;
+            prev_index <= 10'b0;
+            prev_distance <= 35'b0;
+            prev_prev_distance <= 35'b0;
+            // peaks <= 10'b0;
 
             directions[0][0] = 2; directions[0][1] = 2;
             directions[1][0] = 2; directions[1][1] = 0;
@@ -179,9 +192,11 @@ module img_processing(
                     end
                 end
                 4'd1: begin // Accumulate data for the mean calculation
-                    hand_area <= 17'b0;
-                    hand_perimeter <= 17'b0;
-                    max_distance <= 35'b0;
+                    hand_area <= 17'd0;
+                    hand_perimeter <= 17'd0;
+                    max_distance <= 35'd0;
+                    peaks <= 10'd0;     
+                    classification <= 4'd0;
 
                     addr_read <= addr_read + 1'b1;
                     red_acumulator <= red_acumulator + red_data_in;
@@ -538,6 +553,12 @@ module img_processing(
                         if (distance_squared > max_distance) begin
                             max_distance <= distance_squared;
                         end
+                        if (distance_buffer_index == 10'd0) begin
+                            prev_prev_distance <= distance_squared;
+                        end
+                        if (distance_buffer_index == 10'd1) begin
+                            prev_distance <= distance_squared;
+                        end
                         if (distance_buffer_index >= 10'd899) begin
                             state <= 4'd13;
                         end
@@ -573,7 +594,6 @@ module img_processing(
                             else begin
                                 aux_index <= 3'b000;
                             end
-                            // state <= 4'd13;
                         end
                         else begin // Search for next edge candidate neighbor
                             addr_read <= neighbor_calc;
@@ -585,10 +605,80 @@ module img_processing(
                         end
                     end
                 end
-                4'd13: begin
-                    // max_distance <= distance_buffer[5];
-                    done <= 1'b1;
+                4'd13: begin // Calculate threshold
+                    max_distance <= (max_distance * 510) / 1000;
+                    max_distance_index <= distance_buffer_index;
+                    distance_buffer_index <= 10'd2;
+                    state <= 4'd14;
+                end
+                4'd14: begin // Find peaks
+                    
+                    if ((prev_prev_distance <= prev_distance) && (prev_distance >= distance_buffer[distance_buffer_index])) begin
+                        if(prev_distance >= max_distance) begin
+                            if((distance_buffer_index - 1 - prev_index) > 10) begin
+                                peaks <= peaks + 1'b1;
+                                prev_index <= distance_buffer_index - 1'b1;
+                            end
+                        end
+                    end
+
+                    prev_distance <= distance_buffer[distance_buffer_index];
+                    prev_prev_distance <= prev_distance;
+                    distance_buffer_index <= distance_buffer_index + 1'b1;
+
+                    if (distance_buffer_index >= max_distance_index) begin
+                        state <= 4'd15;
+                        // state <= 4'd0;
+                        // done <= 1'b1;
+                    end
+                end
+                4'd15: begin // Classify hand
+                    // if ((hand_area > 17'd14949) && (hand_area < 17'd18537) && (hand_perimeter > 17'd440) && (hand_perimeter < 17'd650) && (peaks == 10'd1)) begin
+                    //     classification <= 4'd1;
+                    // end
+                    // else if ((hand_area > 17'd14949) && (hand_area < 17'd18537) && (hand_perimeter > 17'd440) && (hand_perimeter < 17'd650) && (peaks == 10'd2)) begin
+                    //     classification <= 4'd2;
+                    // end
+                    // else if ((hand_area > 17'd14949) && (hand_area < 17'd18936) && (hand_perimeter > 17'd440) && (hand_perimeter < 17'd650) && (peaks == 10'd3)) begin
+                    //     classification <= 4'd3;
+                    // end
+                    // else if ((hand_area > 17'd15946) && (hand_perimeter > 17'd610) && (peaks == 10'd4)) begin
+                    //     classification <= 4'd4;
+                    // end
+                    // else if ((hand_area >= 17'd18936) && (hand_perimeter >= 17'd687) && (peaks == 10'd5)) begin
+                    //     classification <= 4'd5;
+                    // end
+                    // else if ((hand_area < 17'd9966) && (hand_perimeter < 17'd381)) begin
+                    //     classification <= 4'd6;
+                    // end
+                    // else begin
+                    //     classification <= 4'd7;
+                    // end
+
+                    if ((hand_perimeter > 17'd440) && (hand_perimeter < 17'd660) && (peaks == 10'd1)) begin
+                        classification <= 4'd1;
+                    end
+                    else if ((hand_perimeter > 17'd440) && (hand_perimeter < 17'd660) && (peaks == 10'd2)) begin
+                        classification <= 4'd2;
+                    end
+                    else if ((hand_perimeter > 17'd440) && (hand_perimeter < 17'd660) && (peaks == 10'd3)) begin
+                        classification <= 4'd3;
+                    end
+                    else if ((hand_perimeter > 17'd610) && (peaks == 10'd4)) begin
+                        classification <= 4'd4;
+                    end
+                    else if ((hand_perimeter >= 17'd687) && (peaks == 10'd5)) begin
+                        classification <= 4'd5;
+                    end
+                    else if ((hand_perimeter < 17'd381)) begin
+                        classification <= 4'd6;
+                    end
+                    else begin
+                        classification <= 4'd7;
+                    end
+
                     state <= 4'd0;
+                    done <= 1'b1;
                 end
                 default: begin
                     init_values;
