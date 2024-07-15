@@ -101,12 +101,12 @@ module top (
 	
 	// 7-segments modules
 	segment7 segment_seven_0 (
-		.bcd(4'b0000),
+		.bcd(data_to_send[3:0]),
 		.seg(hex0)
 	);
 	
 	segment7 segment_seven_1 (
-		.bcd(4'b0000),
+		.bcd(data_to_send[7:4]),
 		.seg(hex1)
 	);
 
@@ -186,5 +186,29 @@ module top (
 		.i_SPI_MOSI(mosi),
 		.i_SPI_CS_n(ss)
 	);
+
+	// spi_slave spi(
+	// 	.clk(clk),
+	// 	.rst(rst),
+	// 	.ss(ss),
+	// 	.mosi(mosi),
+	// 	.miso(miso),
+	// 	.sck(sck),
+	// 	.done(spi_cycle_done),
+	// 	.din(data_to_send),
+	// 	.dout(data_received)
+	// );
+
+	// spi_slave_3 spi(
+	// 	.clk(clk),
+	// 	.rst(rst),
+	// 	.ss(ss),
+	// 	.mosi(mosi),
+	// 	.miso(miso),
+	// 	.sck(sck),
+	// 	.done(spi_cycle_done),
+	// 	.din(8'b11110000),
+	// 	.dout(data_received)
+	// );
 
 endmodule

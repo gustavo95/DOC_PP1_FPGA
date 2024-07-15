@@ -184,7 +184,7 @@ module spi_slave_2
     if (i_SPI_CS_n)
     begin
       r_TX_Bit_Count <= 3'b110;  // Send MSb first
-      r_SPI_MISO_Bit <= 1'b0;  // Reset to MSb
+      r_SPI_MISO_Bit <= r_TX_Byte[3'b111];  // Reset to MSb
     end
     else
     begin

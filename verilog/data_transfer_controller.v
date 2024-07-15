@@ -104,8 +104,8 @@ module data_transfer_controller (
 							end
 							else if (spi_byte_in[5:2] == 4'b0100) begin
 								state <= 3'd5;
-								// int_data <= hand_area;
-								int_data <= max_distance[31:0];
+								int_data <= hand_area;
+								// int_data <= max_distance[31:0];
 							end
 							else if (spi_byte_in[5:2] == 4'b0101) begin
 								state <= 3'd5;
@@ -160,6 +160,9 @@ module data_transfer_controller (
 									state <= 3'd0;
 								end
 							end
+							// if (bram_addr >= 17'd76799) begin
+							// 	state <= 3'd0;
+							// end
 						end
 				3'd3 : begin // Send bram data
 							spi_byte_out <= bram_data_out;
