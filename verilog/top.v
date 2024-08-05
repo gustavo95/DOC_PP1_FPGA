@@ -210,5 +210,70 @@ module top (
 	// 	.din(8'b11110000),
 	// 	.dout(data_received)
 	// );
+	
+    hpsfpga u0 (
+        .clk_clk                            (clk),                            //                         clk.clk
+        .memory_mem_a                       (HPS_DDR3_ADDR),                       //                      memory.mem_a
+        .memory_mem_ba                      (HPS_DDR3_BA),                      //                            .mem_ba
+        .memory_mem_ck                      (HPS_DDR3_CK_P),                      //                            .mem_ck
+        .memory_mem_ck_n                    (HPS_DDR3_CK_N),                    //                            .mem_ck_n
+        .memory_mem_cke                     (HPS_DDR3_CKE),                     //                            .mem_cke
+        .memory_mem_cs_n                    (HPS_DDR3_CS_N),                    //                            .mem_cs_n
+        .memory_mem_ras_n                   (HPS_DDR3_RAS_N),                   //                            .mem_ras_n
+        .memory_mem_cas_n                   (HPS_DDR3_CAS_N),                   //                            .mem_cas_n
+        .memory_mem_we_n                    (HPS_DDR3_WE_N),                    //                            .mem_we_n
+        .memory_mem_reset_n                 (HPS_DDR3_RESET_N),                 //                            .mem_reset_n
+        .memory_mem_dq                      (HPS_DDR3_DQ),                      //                            .mem_dq
+        .memory_mem_dqs                     (HPS_DDR3_),                     //                            .mem_dqs
+        .memory_mem_dqs_n                   (HPS_DDR3_),                   //                            .mem_dqs_n
+        .memory_mem_odt                     (HPS_DDR3_),                     //                            .mem_odt
+        .memory_mem_dm                      (HPS_DDR3_),                      //                            .mem_dm
+        .memory_oct_rzqin                   (HPS_DDR3_),                   //                            .oct_rzqin
+        .hps_0_h2f_reset_reset_n            (<connected-to-hps_0_h2f_reset_reset_n>),            //             hps_0_h2f_reset.reset_n
+        .spi_out_external_connection_export (<connected-to-spi_out_external_connection_export>), // spi_out_external_connection.export
+        .spi_in_external_connection_export  (<connected-to-spi_in_external_connection_export>),  //  spi_in_external_connection.export
+        .reset_reset_n                      (1),                      //                       reset.reset_n
+        .hps_io_hps_io_emac1_inst_TX_CLK    (<connected-to-hps_io_hps_io_emac1_inst_TX_CLK>),    //                      hps_io.hps_io_emac1_inst_TX_CLK
+        .hps_io_hps_io_emac1_inst_TXD0      (<connected-to-hps_io_hps_io_emac1_inst_TXD0>),      //                            .hps_io_emac1_inst_TXD0
+        .hps_io_hps_io_emac1_inst_TXD1      (<connected-to-hps_io_hps_io_emac1_inst_TXD1>),      //                            .hps_io_emac1_inst_TXD1
+        .hps_io_hps_io_emac1_inst_TXD2      (<connected-to-hps_io_hps_io_emac1_inst_TXD2>),      //                            .hps_io_emac1_inst_TXD2
+        .hps_io_hps_io_emac1_inst_TXD3      (<connected-to-hps_io_hps_io_emac1_inst_TXD3>),      //                            .hps_io_emac1_inst_TXD3
+        .hps_io_hps_io_emac1_inst_RXD0      (<connected-to-hps_io_hps_io_emac1_inst_RXD0>),      //                            .hps_io_emac1_inst_RXD0
+        .hps_io_hps_io_emac1_inst_MDIO      (<connected-to-hps_io_hps_io_emac1_inst_MDIO>),      //                            .hps_io_emac1_inst_MDIO
+        .hps_io_hps_io_emac1_inst_MDC       (<connected-to-hps_io_hps_io_emac1_inst_MDC>),       //                            .hps_io_emac1_inst_MDC
+        .hps_io_hps_io_emac1_inst_RX_CTL    (<connected-to-hps_io_hps_io_emac1_inst_RX_CTL>),    //                            .hps_io_emac1_inst_RX_CTL
+        .hps_io_hps_io_emac1_inst_TX_CTL    (<connected-to-hps_io_hps_io_emac1_inst_TX_CTL>),    //                            .hps_io_emac1_inst_TX_CTL
+        .hps_io_hps_io_emac1_inst_RX_CLK    (<connected-to-hps_io_hps_io_emac1_inst_RX_CLK>),    //                            .hps_io_emac1_inst_RX_CLK
+        .hps_io_hps_io_emac1_inst_RXD1      (<connected-to-hps_io_hps_io_emac1_inst_RXD1>),      //                            .hps_io_emac1_inst_RXD1
+        .hps_io_hps_io_emac1_inst_RXD2      (<connected-to-hps_io_hps_io_emac1_inst_RXD2>),      //                            .hps_io_emac1_inst_RXD2
+        .hps_io_hps_io_emac1_inst_RXD3      (<connected-to-hps_io_hps_io_emac1_inst_RXD3>),      //                            .hps_io_emac1_inst_RXD3
+        .hps_io_hps_io_sdio_inst_CMD        (<connected-to-hps_io_hps_io_sdio_inst_CMD>),        //                            .hps_io_sdio_inst_CMD
+        .hps_io_hps_io_sdio_inst_D0         (<connected-to-hps_io_hps_io_sdio_inst_D0>),         //                            .hps_io_sdio_inst_D0
+        .hps_io_hps_io_sdio_inst_D1         (<connected-to-hps_io_hps_io_sdio_inst_D1>),         //                            .hps_io_sdio_inst_D1
+        .hps_io_hps_io_sdio_inst_CLK        (<connected-to-hps_io_hps_io_sdio_inst_CLK>),        //                            .hps_io_sdio_inst_CLK
+        .hps_io_hps_io_sdio_inst_D2         (<connected-to-hps_io_hps_io_sdio_inst_D2>),         //                            .hps_io_sdio_inst_D2
+        .hps_io_hps_io_sdio_inst_D3         (<connected-to-hps_io_hps_io_sdio_inst_D3>),         //                            .hps_io_sdio_inst_D3
+        .hps_io_hps_io_usb1_inst_D0         (<connected-to-hps_io_hps_io_usb1_inst_D0>),         //                            .hps_io_usb1_inst_D0
+        .hps_io_hps_io_usb1_inst_D1         (<connected-to-hps_io_hps_io_usb1_inst_D1>),         //                            .hps_io_usb1_inst_D1
+        .hps_io_hps_io_usb1_inst_D2         (<connected-to-hps_io_hps_io_usb1_inst_D2>),         //                            .hps_io_usb1_inst_D2
+        .hps_io_hps_io_usb1_inst_D3         (<connected-to-hps_io_hps_io_usb1_inst_D3>),         //                            .hps_io_usb1_inst_D3
+        .hps_io_hps_io_usb1_inst_D4         (<connected-to-hps_io_hps_io_usb1_inst_D4>),         //                            .hps_io_usb1_inst_D4
+        .hps_io_hps_io_usb1_inst_D5         (<connected-to-hps_io_hps_io_usb1_inst_D5>),         //                            .hps_io_usb1_inst_D5
+        .hps_io_hps_io_usb1_inst_D6         (<connected-to-hps_io_hps_io_usb1_inst_D6>),         //                            .hps_io_usb1_inst_D6
+        .hps_io_hps_io_usb1_inst_D7         (<connected-to-hps_io_hps_io_usb1_inst_D7>),         //                            .hps_io_usb1_inst_D7
+        .hps_io_hps_io_usb1_inst_CLK        (<connected-to-hps_io_hps_io_usb1_inst_CLK>),        //                            .hps_io_usb1_inst_CLK
+        .hps_io_hps_io_usb1_inst_STP        (<connected-to-hps_io_hps_io_usb1_inst_STP>),        //                            .hps_io_usb1_inst_STP
+        .hps_io_hps_io_usb1_inst_DIR        (<connected-to-hps_io_hps_io_usb1_inst_DIR>),        //                            .hps_io_usb1_inst_DIR
+        .hps_io_hps_io_usb1_inst_NXT        (<connected-to-hps_io_hps_io_usb1_inst_NXT>),        //                            .hps_io_usb1_inst_NXT
+        .hps_io_hps_io_uart0_inst_RX        (<connected-to-hps_io_hps_io_uart0_inst_RX>),        //                            .hps_io_uart0_inst_RX
+        .hps_io_hps_io_uart0_inst_TX        (<connected-to-hps_io_hps_io_uart0_inst_TX>),        //                            .hps_io_uart0_inst_TX
+        .spi_sck_external_connection_export (<connected-to-spi_sck_external_connection_export>), // spi_sck_external_connection.export
+        .spi_ss_external_connection_export  (<connected-to-spi_ss_external_connection_export>)   //  spi_ss_external_connection.export
+    );
+
 
 endmodule
+
+
+
+// "C:\Users\Pedro\AppData\Local\Programs\Microsoft VS Code\Code.exe" -g %f:%l
