@@ -15,8 +15,7 @@
   </columns>
  </clocktable>
  <window width="1100" height="738" x="0" y="0" />
- <library
-   expandedCategories="Library/Bridges,Library/Configuration &amp; Programming,Library/Bridges and Adapters/Streaming,Library/Bridges/Streaming,Project,Library/Bridges and Adapters/DMA,Library/Clock and Reset,Library/Bridges/Memory-Mapped,Library,Library/Bridges and Adapters" />
+ <library expandedCategories="Project/System,Library,Project" />
  <hdlexample language="VERILOG" />
- <generation path="verilog" />
+ <generation path="" />
 </preferences>
