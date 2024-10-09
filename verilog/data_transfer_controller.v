@@ -141,6 +141,7 @@ module data_transfer_controller (
 							size_byte_count <= size_byte_count - 1'd1;
 							if (size_byte_count <= 3'd1) begin
 								state <= 3'd2;
+								bram_we <= 1'b1;
 								img_height_count <= img_height;
 								img_width_count[15:8] <= img_width[15:8];
 								img_width_count[7:0] <= spi_byte_in;
@@ -149,7 +150,6 @@ module data_transfer_controller (
 				3'd2 : begin // Reiceves the image data bytes
 							bram_data_in <= spi_byte_in;
 							bram_addr <= bram_addr + 17'b1;
-							bram_we <= 1'b1;
 							
 							// Update image size counters
 							img_width_count <= img_width_count - 1'b1;

@@ -237,30 +237,30 @@ module top (
 		.classification(classification)
 	);
 	
-	spi_slave_2 spi(
-		.i_Rst_L(rst),
-		.i_Clk(clk),
-		.o_RX_DV(spi_cycle_done),
-		.o_RX_Byte(data_received),
-		.i_TX_DV(1'b1),
-		.i_TX_Byte(data_to_send),
-		.i_SPI_Clk(fpga_sck),
-		.o_SPI_MISO(fpga_miso),
-		.i_SPI_MOSI(fpga_mosi),
-		.i_SPI_CS_n(fpga_s0)
-	);
+//	spi_slave_2 spi(
+//		.i_Rst_L(rst),
+//		.i_Clk(clk),
+//		.o_RX_DV(spi_cycle_done),
+//		.o_RX_Byte(data_received),
+//		.i_TX_DV(1'b1),
+//		.i_TX_Byte(data_to_send),
+//		.i_SPI_Clk(fpga_sck),
+//		.o_SPI_MISO(fpga_miso),
+//		.i_SPI_MOSI(fpga_mosi),
+//		.i_SPI_CS_n(fpga_s0)
+//	);
 
-	// spi_slave spi(
-	// 	.clk(clk),
-	// 	.rst(rst),
-	// 	.ss(ss),
-	// 	.mosi(mosi),
-	// 	.miso(miso),
-	// 	.sck(sck),
-	// 	.done(spi_cycle_done),
-	// 	.din(data_to_send),
-	// 	.dout(data_received)
-	// );
+ spi_slave spi(
+ 	.clk(clk),
+ 	.rst(rst),
+ 	.ss(fpga_s0),
+ 	.mosi(fpga_mosi),
+ 	.miso(fpga_miso),
+ 	.sck(fpga_sck),
+ 	.done(spi_cycle_done),
+ 	.din(data_to_send),
+ 	.dout(data_received)
+ );
 
 	// spi_slave_3 spi(
 	// 	.clk(clk),
